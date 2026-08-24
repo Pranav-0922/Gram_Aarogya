@@ -1,47 +1,51 @@
+'use client'
+
+import { useMemo, useState } from 'react'
+import {
+  Activity, AlertTriangle, ArrowRight, Bell, CalendarDays, Camera, Check, ChevronDown, ChevronRight,
+  ClipboardList, Clock3, FileHeart, FileText, HeartPulse, Hospital, LayoutDashboard, MapPin, Menu,
+  MessageCircle, Mic, MoreHorizontal, Pill, Plus, Printer, Search, ShieldCheck, Stethoscope,
+  Syringe, UserRound, UsersRound, Video, X, Zap, Phone, Download
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+
+const nav = [
+  { label: 'Dashboard', icon: LayoutDashboard }, { label: 'Find Healthcare', icon: Search }, { label: 'Emergency', icon: AlertTriangle }, { label: 'Medicine', icon: Pill },
+]
+const care = [{ label: 'My Records', icon: ClipboardList }, { label: 'Telemedicine', icon: Video }, { label: 'Prescriptions', icon: FileHeart }]
+const facilities = [
+  { name: 'Bahadrabad PHC', type: 'Primary Health Centre', distance: '1.2 km', status: 'Open', icon: Hospital },
+  { name: 'Haridwar CHC', type: 'Community Health Centre', distance: '4.8 km', status: 'Open', icon: Hospital },
+  { name: 'District Hospital', type: 'Speciality & Referral', distance: '11.4 km', status: 'Open', icon: Hospital },
+]
+
 export default function Page() {
-  return (
-    <main
-      style={{
-        colorScheme: 'light dark',
-        position: 'relative',
-        display: 'flex',
-        minHeight: '100vh',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'light-dark(#fff, #000)',
-        color: 'light-dark(#000, #fff)',
-      }}
-    >
-      <svg
-        aria-hidden="true"
-        style={{ width: 80, height: 80 }}
-        width={80}
-        height={80}
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p
-        style={{
-          position: 'absolute',
-          left: '50%',
-          top: 'calc(50% + 56px)',
-          transform: 'translateX(-50%)',
-          whiteSpace: 'nowrap',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: 'light-dark(#71717a, #a1a1aa)',
-        }}
-      >
-        Your v0 generation will show here.
-      </p>
-    </main>
-  )
+  const [page, setPage] = useState('Dashboard')
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [consulting, setConsulting] = useState<string | null>(null)
+  const [showNew, setShowNew] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [meds, setMeds] = useState([{ name: '', dose: '', frequency: '1-0-1', duration: '' }])
+  const [expanded, setExpanded] = useState<number | null>(0)
+  const go = (next: string) => { setPage(next); setMobileOpen(false) }
+  return <div className="min-h-screen bg-background text-foreground">
+    <aside className={`sidebar ${mobileOpen ? 'is-open' : ''}`}>
+      <div className="brand"><div className="brand-mark"><HeartPulse /></div><div><strong>Gram Aarogya</strong><span>Healthier Villages, Stronger India</span></div></div>
+      <div className="nav-scroll"><NavGroup items={nav} page={page} go={go} /><p className="nav-label">Care</p><NavGroup items={care} page={page} go={go} /><p className="nav-label">Account</p><NavGroup items={[{ label: 'Profile', icon: UserRound }]} page={page} go={go} /></div>
+      <div className="sidebar-foot"><ShieldCheck /><span>Your records are private<br /><b>Health ID: GA-UK-2026-08841</b></span></div>
+    </aside>
+    <div className="app-main">
+      <header className="topbar"><Button variant="ghost" size="icon" className="mobile-menu" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Open navigation"><Menu /></Button><button className="location"><MapPin /> <span>Bahadrabad, Haridwar, Uttarakhand</span><ChevronDown /></button><div className="top-actions"><button className="notification" aria-label="Notifications"><Bell /><i>2</i></button><div className="user-chip"><div className="avatar">HS</div><span><b>Hemant</b><small>Patient</small></span><ChevronDown /></div></div></header>
+      <main className="content">{page === 'Dashboard' && <Dashboard go={go} />}{page === 'My Records' && <Records />}{page === 'Telemedicine' && <Telemedicine openCall={setConsulting} />}{page === 'Prescriptions' && <Prescriptions showNew={showNew} setShowNew={setShowNew} meds={meds} setMeds={setMeds} saved={saved} setSaved={setSaved} expanded={expanded} setExpanded={setExpanded} />}</main>
+    </div>
+    {consulting && <CallModal doctor={consulting} end={() => { setConsulting(null); go('Prescriptions') }} close={() => setConsulting(null)} />}
+  </div>
 }
+function NavGroup({ items, page, go }: any) { return <nav className="nav-group">{items.map((item: any) => <button key={item.label} className={page === item.label ? 'active' : ''} onClick={() => go(item.label)}><item.icon />{item.label}{item.label === 'Emergency' && <span className="emergency-dot" />}</button>)}</nav> }
+function PageHead({ eyebrow, title, sub, action }: any) { return <div className="page-head"><div><p className="eyebrow">{eyebrow}</p><h1>{title}</h1><p>{sub}</p></div>{action}</div> }
+function Dashboard({ go }: any) { return <><PageHead eyebrow="Monday, 24 August 2026" title="Welcome, Hemant" sub="Your health, our priority." /><div className="stats">{[['Nearby Facilities','5',Hospital,'stat-green'],['Available Doctors','3',Stethoscope,'stat-blue'],['Medicines Available','80%',Pill,'stat-red'],['Emergency Services','1',Zap,'stat-purple']].map(([label,num,Icon,cls]: any) => <div className={`stat-card ${cls}`} key={label}><div className="stat-icon"><Icon /></div><div><strong>{num}</strong><span>{label}</span></div><button onClick={() => go(label === 'Available Doctors' ? 'Telemedicine' : label === 'Nearby Facilities' ? 'Find Healthcare' : 'Dashboard')}>View All <ArrowRight /></button></div>)}</div><div className="dashboard-grid"><section className="panel facilities-panel"><div className="panel-head"><div><h2>Nearby Healthcare Facilities</h2><p>Care that follows you, wherever you go.</p></div><button className="text-link">View map <ArrowRight /></button></div><div className="map"><span className="map-label">Bahadrabad</span><div className="road road-one" /><div className="road road-two" /><div className="map-pin pin-one"><MapPin /></div><div className="map-pin pin-two"><MapPin /></div><div className="map-pin pin-three"><MapPin /></div><div className="map-pop"><b>Bahadrabad PHC</b><span><MapPin /> 1.2 km away</span><em><i /> Open now</em></div></div><div className="facility-list">{facilities.map((f) => <button key={f.name} className="facility-row"><div className="facility-icon"><f.icon /></div><div><b>{f.name}</b><span>{f.type} · {f.distance}</span></div><Badge>Open</Badge><ChevronRight /></button>)}</div></section><div className="side-stack"><section className="panel quick-panel"><div className="panel-head"><div><h2>Quick Actions</h2><p>Everything you need, closer.</p></div></div><div className="quick-grid">{[['Consult Doctor',Video,'teal','Telemedicine'],['Emergency Help',Phone,'red','Emergency'],['Find Hospital',Hospital,'blue','Find Healthcare'],['Find Medicine',Pill,'yellow','Medicine']].map(([label,Icon,cls,target]: any) => <button key={label} onClick={() => go(target)} className={`quick-action ${cls}`}><Icon /><span>{label}</span><ArrowRight /></button>)}</div></section><section className="panel alerts-panel"><div className="panel-head"><div><h2>Health Alerts</h2><p>Updates from your care network.</p></div><MoreHorizontal /></div><div className="alert-row"><div className="alert-icon alert-red"><AlertTriangle /></div><span><b>Medicine stock update</b><small>Some medicines are low at Bahadrabad PHC.</small></span></div><div className="alert-row"><div className="alert-icon alert-green"><CalendarDays /></div><span><b>Free health camp</b><small>General check-up · 28 Aug, 9:00 AM</small></span></div></section></div></div></> }
+function Badge({ children, tone='green' }: any) { return <span className={`badge ${tone}`}>{children}</span> }
+function Records() { return <><PageHead eyebrow="Your longitudinal health record" title="My Records" sub="One secure record across every facility you visit." /><section className="profile-card"><div className="profile-avatar">HS</div><div className="profile-main"><div><h2>Hemant Singh Rawat <Badge>Health ID linked</Badge></h2><p><MapPin /> Village Bahadrabad, Haridwar, Uttarakhand</p></div><div className="health-id"><span>Gram Aarogya Health ID</span><b>GA-UK-2026-08841</b><ShieldCheck /></div></div><div className="profile-details"><span><small>Age / Sex</small><b>34 years · Male</b></span><span><small>Blood Group</small><b>O positive</b></span><span><small>Phone</small><b>+91 98XX XX4412</b></span><span><small>ABHA Linked</small><b className="success"><Check /> Yes</b></span></div><div className="tags"><Badge tone="amber">Hypertension · Chronic</Badge><Badge tone="red">Penicillin Allergy</Badge></div></section><div className="vitals">{[['Blood Pressure','128/82','mmHg',Activity,'normal'],['Blood Sugar','104','mg/dL · Fasting',Syringe,'borderline'],['Weight','68.5','kg',UsersRound,'normal'],['Pulse','76','bpm · Resting',HeartPulse,'normal']].map(([label,value,unit,Icon,tone]: any) => <div className="vital-card" key={label}><Icon /><span>{label}</span><strong className={tone}>{value}</strong><small>{unit}</small><em>{tone === 'normal' ? 'Within normal range' : 'Monitor regularly'}</em></div>)}</div><div className="records-grid"><section className="panel timeline-panel"><div className="panel-head"><div><h2>Visit History</h2><p>Your care journey across the network.</p></div><button className="text-link">View all <ArrowRight /></button></div><div className="timeline">{[['18 Aug 2026','Teleconsultation','Routine BP follow-up. Continue current medication.','Dr. Meera Joshi · Gram Aarogya'],['02 Jul 2026','In-person visit','Blood pressure check and lifestyle counselling.','Dr. Anil Negi · Bahadrabad PHC'],['12 May 2026','Referral','Referred for specialist cardiac review.','Dr. Kavita Rawat · Haridwar CHC']].map(([date,type,note,doctor], i) => <div className="timeline-item" key={date}><div className={`timeline-dot ${i === 0 ? 'current' : ''}`} /><div><span className="timeline-date">{date}</span><b>{type}</b><p>{note}</p><small>{doctor}</small></div></div>)}</div></section><div className="side-stack"><section className="panel"><div className="panel-head"><div><h2>Documents</h2><p>Reports shared across facilities.</p></div><button className="icon-button"><Plus /></button></div>{['Blood test report.pdf','ECG report.pdf','Referral letter.pdf'].map((doc, i) => <div className="document-row" key={doc}><div className="file-icon"><FileText /></div><span><b>{doc}</b><small>{['18 Aug 2026','02 Jul 2026','12 May 2026'][i]}</small></span><Download /></div>)}</section><section className="panel"><div className="panel-head"><div><h2>Active Medication</h2><p>Prescribed across your care journey.</p></div></div>{['Amlodipine 5 mg · Once daily','Telmisartan 40 mg · Morning','Atorvastatin 10 mg · Night'].map(m => <div className="med-row" key={m}><Pill /><span><b>{m.split(' · ')[0]}</b><small>{m.split(' · ')[1]}</small></span><Badge>Active</Badge></div>)}</section></div></div></> }
+function Telemedicine({ openCall }: any) { const doctors = [['Dr. Meera Joshi','General Physician','12 years','Available now','Hindi · English · Garhwali', 'MJ',true],['Dr. Anil Negi','Cardiologist','15 years','In consultation · back in 12 min','Hindi · English', 'AN',false],['Dr. Kavita Rawat','Women’s Health','9 years','Available now','Hindi · English · Garhwali', 'KR',true],['Dr. Rakesh Kumar','General Physician','8 years','Available now','Hindi · English · Punjabi', 'RK',true],['Dr. Suman Bisht','Paediatrician','11 years','In consultation · back in 20 min','Hindi · English · Garhwali', 'SB',false],['Dr. Pooja Shah','Dermatologist','10 years','Available now','Hindi · English', 'PS',true]]; return <><PageHead eyebrow="Care from wherever you are" title="Telemedicine" sub="Speak to a qualified doctor without travelling to a hospital." /><div className="low-band"><Activity /><span><b>Low-bandwidth care is on</b> Consultations prioritize audio for reliable rural connectivity.</span><Badge tone="blue">Audio-first</Badge></div><div className="doctor-grid">{doctors.map(([name,specialty,years,status,languages,initials,available]: any) => <article className="doctor-card" key={name}><div className="doctor-top"><div className="doctor-avatar">{initials}</div><Badge tone={available ? 'green' : 'amber'}>{available ? 'Available' : 'Busy'}</Badge></div><h2>{name}</h2><p>{specialty} · {years} experience</p><div className="availability"><i className={available ? 'online' : 'busy'} />{status}</div><div className="languages"><MessageCircle /> {languages}</div><Button className="w-full" variant={available ? 'default' : 'outline'} onClick={() => available && openCall(name)}>{available ? 'Consult Now' : 'Join Queue'}<ArrowRight data-icon="inline-end" /></Button></article>)}</div></> }
+function CallModal({ doctor, end, close }: any) { const [seconds, setSeconds] = useState(0); useMemo(() => { const id = setInterval(() => setSeconds(s => s + 1), 1000); return () => clearInterval(id) }, []); return <div className="modal-backdrop"><div className="call-modal"><button className="modal-close" onClick={close} aria-label="Close"><X /></button><div className="call-screen"><div className="call-avatar">{doctor.split(' ').slice(1).map((x: string) => x[0]).join('')}</div><h2>{doctor}</h2><p>Connected securely · {String(Math.floor(seconds / 60)).padStart(2,'0')}:{String(seconds % 60).padStart(2,'0')}</p><div className="call-controls"><button><Mic /></button><button><Camera /></button><button><MessageCircle /></button><button className="end" onClick={end}><Phone /></button></div></div><div className="call-note"><Activity /> Low-bandwidth mode active — audio prioritized for rural connectivity</div><Button className="w-full" onClick={end}>End Call &amp; Write Prescription</Button></div></div> }
+function Prescriptions({ showNew, setShowNew, meds, setMeds, saved, setSaved, expanded, setExpanded }: any) { const update = (i:number, key:string, value:string) => setMeds(meds.map((m:any,j:number) => j === i ? {...m,[key]:value} : m)); return <><PageHead eyebrow="Continuity of care" title="Digital Prescriptions" sub="Every prescription stays connected to Health ID GA-UK-2026-08841." action={<Button onClick={() => { setShowNew(true); setSaved(false) }}><Plus data-icon="inline-start" /> New Prescription</Button>} />{saved && <div className="saved-banner"><Check /> Prescription signed and saved to your Health ID.</div>}{showNew && <section className="prescription-pad"><div className="pad-head"><div><div className="pad-logo"><HeartPulse /> Gram Aarogya</div><span>e-Prescription · digitally signed</span></div><b>24 Aug 2026</b></div><div className="patient-strip"><span><small>Patient</small><b>Hemant Singh Rawat</b></span><span><small>Health ID</small><b>GA-UK-2026-08841</b></span><span><small>Doctor</small><input placeholder="Enter doctor name" /></span></div><label className="form-label">Diagnosis / Clinical Notes<textarea placeholder="Add diagnosis and care instructions..." /></label><div className="medicine-head"><h3>Medicines</h3><button className="text-link" onClick={() => setMeds([...meds,{name:'',dose:'',frequency:'1-0-1',duration:''}])}><Plus /> Add Medicine</button></div>{meds.map((m:any,i:number) => <div className="medicine-row" key={i}><input value={m.name} onChange={e => update(i,'name',e.target.value)} placeholder="Medicine name" /><input value={m.dose} onChange={e => update(i,'dose',e.target.value)} placeholder="Dose" /><select value={m.frequency} onChange={e => update(i,'frequency',e.target.value)}><option>1-0-1</option><option>1-1-1</option><option>0-0-1</option></select><input value={m.duration} onChange={e => update(i,'duration',e.target.value)} placeholder="Duration" /><button onClick={() => setMeds(meds.filter((_:any,j:number) => j !== i))} aria-label="Remove medicine"><X /></button></div>)}<div className="pad-actions"><Button variant="outline" onClick={() => setShowNew(false)}>Cancel</Button><Button onClick={() => {setSaved(true);setShowNew(false)}}><ShieldCheck data-icon="inline-start" /> Sign &amp; Save Prescription</Button></div></section>}<section className="past-prescriptions"><div className="section-title"><div><h2>Past Prescriptions</h2><p>Securely available to every facility in your care network.</p></div></div>{[['18 Aug 2026','Dr. Meera Joshi','Hypertension follow-up',['Amlodipine 5 mg · 1-0-1 · 30 days','Telmisartan 40 mg · 1-0-0 · 30 days']],['02 Jul 2026','Dr. Anil Negi','Blood pressure management',['Amlodipine 5 mg · 1-0-1 · 30 days']]].map(([date,doctor,diagnosis,items],i) => <div className={`past-card ${expanded===i?'expanded':''}`} key={date}><button className="past-head" onClick={() => setExpanded(expanded===i?null:i)}><div className="prescription-icon"><FileHeart /></div><span><b>{diagnosis}</b><small>{doctor} · {date}</small></span><ChevronDown /></button>{expanded===i && <div className="past-body"><div className="past-meds">{(items as string[]).map(x => <div key={x}><Pill />{x}</div>)}</div><div className="past-actions"><Button variant="outline" size="sm"><Printer data-icon="inline-start" /> Print</Button><Button variant="outline" size="sm"><Download data-icon="inline-start" /> Download PDF</Button></div></div>}</div>)}</section></> }
